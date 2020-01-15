@@ -18,6 +18,7 @@ import Foundation
 /// - linearBuffer (threshold, buffer): linearly scales an object based on its distance as long as it is
 /// further than the buffer distance, otherwise it just returns 100% scale.
 public enum ScalingScheme {
+    static var scaleFactor: Float = 18
 
     case normal
     case tiered(threshold: Double, scale: Float)
@@ -34,34 +35,34 @@ public enum ScalingScheme {
                 if adjustedDistance > threshold {
                     return scale
                 } else {
-                    return 1.0
+                    return ScalingScheme.scaleFactor
                 }
             }
         case .doubleTiered(let firstThreshold, let firstScale, let secondThreshold, let secondScale):
             return { (distance, adjustedDistance) in
-                if adjustedDistance > secondThreshold {
+                if distance > secondThreshold {
                     return secondScale
-                } else if adjustedDistance > firstThreshold {
+                } else if distance > firstThreshold {
                     return firstScale
                 } else {
-                    return 1.0
+                    return ScalingScheme.scaleFactor
                 }
             }
         case .linear(let threshold):
             return { (distance, adjustedDistance) in
 
-                let maxSize = 1.0
+                let maxSize = Double(ScalingScheme.scaleFactor)
                 let absThreshold = abs(threshold)
-                let absAdjDist = abs(adjustedDistance)
+                //let absAdjDist = abs(adjustedDistance)
 
-                let scaleToReturn =  Float( max(maxSize - (absAdjDist / absThreshold), 0.0))
+                let scaleToReturn =  Float( max(maxSize - (distance / absThreshold), 0.0))
 //                print("threshold: \(absThreshold) adjDist: \(absAdjDist) scaleToReturn: \(scaleToReturn)")
                 return scaleToReturn
             }
 
         case .linearBuffer(let threshold, let buffer):
             return { (distance, adjustedDistance) in
-                let maxSize = 1.0
+                let maxSize = Double(ScalingScheme.scaleFactor)
                 let absThreshold = abs(threshold)
                 let absAdjDist = abs(adjustedDistance)
 
@@ -78,7 +79,7 @@ public enum ScalingScheme {
             return { (distance, adjustedDistance) in
 
                 // Scale it to be an appropriate size so that it can be seen
-                var scale = Float(adjustedDistance) * 0.181
+                var scale = ScalingScheme.scaleFactor
                 if distance > 3000 {
                     scale *= 0.75
                 }
